@@ -1,0 +1,66 @@
+/**
+* @file task4.h
+* @brief The header file to the task4
+*/
+
+#ifndef TASK4_H_
+#define TASK4_H_
+
+typedef unsigned char UCHAR;	
+
+#define SIZE_OF_UCHAR 1U	// size of unsigned char
+
+#define MIN_SIZE_WINDOW 3U	// minimal size of the window
+#define MAX_SIZE 53U	// number of nodes of the tree
+#define CODE_ESC 27U	// ESC key code
+#define CONTINUE printf("\nPress any key to continue or ESC to exit...")	// macro output message
+
+struct window	// structure window and node of the tree
+{
+	UCHAR name;		// name of the window
+	UCHAR *data;	// array of characters by which the window is displayed
+	UCHAR w;		// width of the window
+	UCHAR h;		// height of the window
+	window *pL;		// a pointer to the root of the left subtree
+	window *pR;		// a pointer to the root of the right subtree
+};
+
+/**
+* @brief	This function recreates tree for his bypass top-down
+* @param	[in]	pStr The pointer to the first character string
+* @post		returns a pointer to the root
+* @return	window*
+*/
+window* CreateTree ( UCHAR *&pStr );
+
+/**
+* @brief	This function creates a simple window size of 1 character
+* @param	[in]	name The name of the window
+* @post		returns a pointer to the struct window
+* @return	window
+*/
+window* CreateSimpleWindow ( UCHAR name );
+
+/**
+* @brief	This function builds the main window
+* @param	[in]	pRoot The pointer to the root node of the tree
+* @return	window*
+*/
+window* BuildingMainWindow ( window *pRoot );
+
+/**
+* @brief	This function unites two windows
+* @param	[in]	pRoot The pointer to the root node of the tree
+* @return	window*
+*/
+window* BuildingWindow ( window* pRoot );
+
+/**
+* @brief	This function displays a window
+* @param	[in]	pRoot The pointer to the root node of the tree
+* @return	void
+*/
+void PrintWindow ( window* pRoot );
+
+
+#endif /* TASK4_H_ */
