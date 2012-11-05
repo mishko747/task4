@@ -1,4 +1,4 @@
-﻿Build started 02.11.2012 21:38:52.
+﻿Build started 06.11.2012 1:52:34.
      1>Project "C:\projects\task4\task4\task4\task4.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
          Creating "Debug\task4.unsuccessfulbuild" because "AlwaysCreate" was specified.
@@ -23,4 +23,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:01.64
+Time Elapsed 00:00:02.04

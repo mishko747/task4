@@ -10,6 +10,8 @@
 #include <stdio.h>
 #include <string.h>
 
+
+// This function creates a simple window size of 1 character
 window* CreateSimpleWindow ( UCHAR name )
 {
 	window *pWin = new window;
@@ -49,6 +51,60 @@ window* CreateSimpleWindow ( UCHAR name )
 	pWin->pR = NULL;
 
 	return pWin;
+}
+
+// This function changes the height of the window to the specified size
+bool VerticalResize ( window *pRoot, UCHAR height )
+{
+	UCHAR *pData;	// pointer to an array of new windows
+	if( !pRoot || !(pData = new UCHAR[pRoot->w * height]) )
+	{
+		return false;
+	}
+
+	UCHAR sizeOfRow = pRoot->w * SIZE_OF_UCHAR;
+	
+	// Copy array without the last row
+	memcpy(pData, pRoot->data, sizeOfRow * pRoot->h - pRoot->w);	
+	
+	// Copy the last line of an array in the last line of the new array
+	memcpy(pData + (height - 1U) * pRoot->w, pRoot->data + (pRoot->h - 1U) * pRoot->w, sizeOfRow);
+	
+	// Fill in the missing lines
+	UCHAR *pLast = pData + ( pRoot->h - 2U) * pRoot->w;	// Pointer to the last but one row
+	for(UCHAR i = pRoot->h - 1U ; i < height - 1U; ++i)
+	{
+		memcpy(pData + i * pRoot->w, pLast, sizeOfRow);
+	}
+
+	pRoot->h = height;
+	delete pRoot->data;
+	pRoot->data = pData;
+	return true;
+}
+
+// This function changes the width of the window to the specified size
+bool HorizontalResize ( window *pRoot, UCHAR width )
+{
+	UCHAR *pData;	// pointer to an array of new windows
+	if( !pRoot || !(pData = new UCHAR[pRoot->h * width]) )
+	{
+		return false;
+	}
+
+	UCHAR  sizeOfRow = pRoot->w * SIZE_OF_UCHAR - 1U;
+
+	for(UCHAR i = 0; i < pRoot->h; ++i)
+	{
+		*( pData + i * width + width - 1U ) = *( pRoot->data + i * pRoot->w + pRoot->w - 1U );	// Copying the last column
+		memcpy(pData + i * width, pRoot->data + i * pRoot->w, sizeOfRow);	// Copying lines
+		memset(pData + i * width + pRoot->w - 1U, *( pData + i * width + pRoot->w - 2U ) , (width - pRoot->w) * SIZE_OF_UCHAR);
+	}
+	
+	pRoot->w = width;
+	delete pRoot->data;
+	pRoot->data = pData;
+	return true;
 }
 
 // This function create tree
@@ -91,10 +147,8 @@ window* BuildingMainWindow ( window *pRoot )
 	{
 		return NULL;
 	}
-
-	printf("%c", pRoot->name);
 	
-	if( *(pRoot->pL->data) == '|' || *(pRoot->pL->data) == '-' )
+	if( pRoot->pL->name == '|' || pRoot->pL->name == '-' )
 	{
 		if( !BuildingMainWindow( pRoot->pL ) )
 		{
@@ -102,7 +156,7 @@ window* BuildingMainWindow ( window *pRoot )
 		}
 	}
 
-	if( *(pRoot->pR->data) == '|' || *(pRoot->pR->data) == '-' )
+	if( pRoot->pR->name == '|' || pRoot->pR->name == '-' )
 	{
 		if( !BuildingMainWindow( pRoot->pR ) )
 		{
@@ -116,6 +170,8 @@ window* BuildingMainWindow ( window *pRoot )
 // This function unites two windows
 window* BuildingWindow ( window* pRoot )
 {
+
+	
 	if( !pRoot->pL || !pRoot->pR )	// If the windows not exist
 	{
 		return NULL;
@@ -126,51 +182,135 @@ window* BuildingWindow ( window* pRoot )
 		case '|':
 		{
 			// determination the size of the window
-			pRoot->pL->h > pRoot->pR->h ? pRoot->h = pRoot->pL->h : pRoot->h = pRoot->pR->h;
+			if( pRoot->pL->h == pRoot->pR->h )
+			{
+				pRoot->h = pRoot->pL->h;
+			}
+			else
+			{
+				if( pRoot->pL->h > pRoot->pR->h )
+				{
+					pRoot->h = pRoot->pL->h;
+					if( VerticalResize(pRoot->pR, pRoot->h) == false )
+					{
+						return NULL;
+					}
+				}
+				else
+				{
+					pRoot->h = pRoot->pR->h;
+					if( VerticalResize(pRoot->pL, pRoot->h) == false )
+					{
+						return NULL;
+					}
+				}	// End if(pRoot->pL->h > pRoot->pR->h)
+
+			}	// End if(pRoot->pL->h == pRoot->pR->h)
 			pRoot->w = pRoot->pL->w + pRoot->pR->w - 1U;
 
 			unsigned short sizeArr = pRoot->w * pRoot->h; // Size of the array to store window
 
 			// Creating an array and filling it with spaces
-			if(	( pRoot->data = new UCHAR[pRoot->w * pRoot->h] ) == NULL ||
-				memset(pRoot->data, 'x', sizeArr * SIZE_OF_UCHAR) == NULL )
+			if(	( pRoot->data = new UCHAR[sizeArr] ) == NULL ||
+				memset(pRoot->data, ' ', sizeArr * SIZE_OF_UCHAR) == NULL )
 			{
 				printf("Memory allocation failed!");
 				return NULL;
 			}
 	
+			// Building a united window
 			UCHAR i = 0;
-			for(i = 0U; i < pRoot->pL->h; ++i)
+			UCHAR LWidth = ( pRoot->pL->w ) * SIZE_OF_UCHAR;
+			UCHAR RWidth = ( pRoot->pR->w - 1U ) * SIZE_OF_UCHAR;
+			for(i = 0U; i < pRoot->h; ++i)
 			{
-				memcpy(pRoot->data + i * pRoot->w, pRoot->pL->data + i * pRoot->pL->w, pRoot->pL->w * SIZE_OF_UCHAR);
+				memcpy(pRoot->data + i * pRoot->w, pRoot->pL->data + i * pRoot->pL->w, LWidth);
+				if( *( pRoot->pR->data + i * pRoot->pR->w ) != '|' )
+				{
+					*(pRoot->data + i * pRoot->w + pRoot->pL->w - 1U) = *( pRoot->pR->data + i * pRoot->pR->w );
+				}
+				memcpy(pRoot->data + i * pRoot->w + LWidth, pRoot->pR->data + i * pRoot->pR->w + 1U, RWidth);
 			}
 
-			PrintWindow( pRoot );
-/*			while(i < pW->h - 1U)
-			{
-				memcpy(pW->data + i * pW->w, pW1->data + (pW1->h - 1U) * pW1->w, pW1->w * sizeof(UCHAR));
-				i++;
-			}
-			memcpy(pW->data + --i * pW->w, pW1->data + pW1->h * pW1->w, pW1->w * sizeof(UCHAR));
-		*/
 			break;
 		}	// End of case '|'
 
 		case '-':
 		{
+			// determination the size of the window
+			if( pRoot->pL->w == pRoot->pR->w )
+			{
+				pRoot->w = pRoot->pL->w;
+			}
+			else
+			{
+				if( pRoot->pL->w > pRoot->pR->w )
+				{
+					pRoot->w = pRoot->pL->w;
+					if( HorizontalResize(pRoot->pR, pRoot->w) == false )
+					{
+						return NULL;
+					}
+				}
+				else
+				{
+					pRoot->w = pRoot->pR->w;
+					if( HorizontalResize( pRoot->pL, pRoot->w) == false )
+					{
+						return NULL;
+					}
+				}
+			}	// End if( pRoot->pL->w == pRoot->pR->w )
+			pRoot->h = pRoot->pL->h + pRoot->pR->h - 1U;
+			unsigned short sizeArr = pRoot->w * pRoot->h; // Size of the array to store window
 
-			// ...
+			// Creating an array and filling it with spaces
+			if(	( pRoot->data = new UCHAR[sizeArr] ) == NULL ||
+				memset(pRoot->data, ' ', sizeArr * SIZE_OF_UCHAR) == NULL )
+			{
+				printf("Memory allocation failed!");
+				return NULL;
+			}
+	
+			// Building a united window
+			UCHAR i = 0;
+			UCHAR SizeOfLRow = pRoot->pL->w * SIZE_OF_UCHAR;
+			UCHAR SizeOfRRow = pRoot->pR->w * SIZE_OF_UCHAR;
+			for(i = 0U; i < pRoot->pL->h; ++i)
+			{
+				memcpy(pRoot->data + i * pRoot->w, pRoot->pL->data + i * pRoot->pL->w, SizeOfLRow);
+			}
+
+			i--;
+			for(UCHAR n = 0U; n < pRoot->w; ++n)
+			{
+				if( *(pRoot->pR->data + n) != '-' )
+				{
+					*( pRoot->data + i * pRoot->w + n ) = *(pRoot->pR->data + n);
+				}
+			}
+
+			for(UCHAR j = 1U; j < pRoot->pR->h; ++j)
+			{
+				memcpy(pRoot->data + (i + j) * pRoot->w, pRoot->pR->data + j * pRoot->pR->w, SizeOfRRow);
+			}
+
 			break;
 		}	// End of case '-'
 
 	}	// End of switch(type)
+
+	PrintWindow( pRoot );
+
 	return pRoot;
 }
 
 // This function displays a window
 void PrintWindow ( window *pRoot )
 {
-	printf("\n----------------------------------------------------------\n");
+
+	printf("\nWindow: %c %c %c\n", *(pRoot->pL->data), pRoot->name, *(pRoot->pR->data) );
+	printf("----------------------------------------------------------\n");
 
 	if( !pRoot || !(pRoot->data) )
 	{
@@ -204,19 +344,19 @@ void main ( void )
 	do
 	{
 		system("cls");
-		//pStr = (UCHAR *)("|-|-ABC-D|E-FG-P-|Q|RST");
-		pStr = (UCHAR *)("|AB");
+		pStr = (UCHAR *)("|-|-ABC-D|E-FG-P-|Q|RST");
+	//	pStr = (UCHAR *)("-|-|ABC|D-E|FG|P|-Q-RST");
 
 		printf("Str : %s\n", pStr);
 
 		pTree = CreateTree( pStr );
 		
-		pTree = BuildingMainWindow( pTree );
-
-
-
-		PrintWindow( pTree );
-		
+		if( !pTree )
+		{
+			printf("Impossible to build a tree!\n");
+			continue;
+		}
+		BuildingMainWindow( pTree );
 	}
 	while (CONTINUE && _getch() != CODE_ESC );	// while not pressed ESC
 

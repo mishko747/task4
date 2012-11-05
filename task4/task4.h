@@ -42,6 +42,22 @@ window* CreateTree ( UCHAR *&pStr );
 window* CreateSimpleWindow ( UCHAR name );
 
 /**
+* @brief	This function changes the height of the window to the specified size
+* @param	[in]	pRoot The pointer to the root node of the tree
+* @param	[in]	height Needed height windows
+* @return	bool
+*/
+bool VerticalResize ( window *pRoot, UCHAR height );
+
+/**
+* @brief	This function changes the width of the window to the specified size
+* @param	[in]	pRoot The pointer to the root node of the tree
+* @param	[in]	width Needed width windows
+* @return	bool
+*/
+bool HorizontalResize ( window *pRoot, UCHAR width );
+
+/**
 * @brief	This function builds the main window
 * @param	[in]	pRoot The pointer to the root node of the tree
 * @return	window*
