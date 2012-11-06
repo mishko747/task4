@@ -8,8 +8,6 @@
 
 typedef unsigned char UCHAR;	
 
-#define SIZE_OF_UCHAR 1U	// size of unsigned char
-
 #define MIN_SIZE_WINDOW 3U	// minimal size of the window
 #define MAX_SIZE 53U	// number of nodes of the tree
 #define CODE_ESC 27U	// ESC key code
@@ -24,6 +22,14 @@ struct window	// structure window and node of the tree
 	window *pL;		// a pointer to the root of the left subtree
 	window *pR;		// a pointer to the root of the right subtree
 };
+
+
+/**
+* @brief	This function checks whether the string is a bypass tree top-down
+* @param	[in]	pStr The pointer to the first character string
+* @return	bool
+*/
+bool IsTopDown ( UCHAR *pStr );
 
 /**
 * @brief	This function recreates tree for his bypass top-down
@@ -69,14 +75,20 @@ window* BuildingMainWindow ( window *pRoot );
 * @param	[in]	pRoot The pointer to the root node of the tree
 * @return	window*
 */
-window* BuildingWindow ( window* pRoot );
+window* BuildingWindow ( window *pRoot );
 
 /**
 * @brief	This function displays a window
 * @param	[in]	pRoot The pointer to the root node of the tree
 * @return	void
 */
-void PrintWindow ( window* pRoot );
+void PrintWindow ( window *pRoot );
 
+/**
+* @brief	This function frees the dynamic memory that was allocated under the tree
+* @param	[in]	pRoot The pointer to the root node of the tree
+* @return	bool
+*/
+bool DeleteTree( window *pRoot );
 
 #endif /* TASK4_H_ */
